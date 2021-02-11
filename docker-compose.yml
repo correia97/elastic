@@ -1,0 +1,143 @@
+version: '3.4'
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: es02
+    environment:
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data02:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: es03
+    environment:
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data03:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana-oss:7.10.0
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+    networks:
+      - elastic
+  # metricbeat:
+  #   image: metricbeat-oss:7.9.1  
+  #   build:
+  #     context: ./metricbeat/
+  #     dockerfile: DockerFile
+  #   user: root    
+  #   privileged: true
+  #   restart: on-failure
+  #   volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock:ro
+  #    - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+  #    - /:/hostfs:ro
+  #   networks:
+  #     - elastic
+  #     - blog1_data
+  #     - proxy  
+  #   depends_on: 
+  #     - elasticsearch 
+  #     - kibana
+
+  # auditbeat:
+  #   image: auditbeat-oss:7.9.1  
+  #   build:
+  #     context: ./auditbeat/
+  #     dockerfile: DockerFile
+  #   cap_add:
+  #     - AUDIT_CONTROL
+  #     - AUDIT_READ
+  #   privileged: true    
+  #   user: root    
+  #   networks:
+  #     - elastic
+  #     - blog1_data
+  #     - proxy  
+  #   depends_on: 
+  #     - elasticsearch 
+  #     - kibana
+
+  # heartbeat:
+  #   image: docker.elastic.co/beats/heartbeat-oss:7.9.1   
+    
+  #   privileged: true    
+  #   user: root   
+  #   # build:
+  #   #   context: ./heartbeat/
+  #   #   dockerfile: DockerFile
+   
+  #   volumes:
+  #     - ./heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro                 
+  #   networks:
+  #     - elastic
+  #     - blog1_data
+  #     - proxy  
+  #   depends_on: 
+  #     - elasticsearch 
+  #     - kibana
+
+
+
+volumes:
+  data01:
+    driver: local
+  data02:
+    driver: local
+  data03:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge
+
+   

@@ -1,0 +1,10 @@
+FROM docker.elastic.co/beats/auditbeat-oss:7.9.1  
+USER root
+
+RUN rm /usr/share/auditbeat/auditbeat.yml
+COPY ./auditbeat.yml /usr/share/auditbeat/
+
+
+RUN chown root:auditbeat /usr/share/auditbeat/auditbeat.yml
+RUN chmod go-w /usr/share/auditbeat/auditbeat.yml
+USER auditbeat

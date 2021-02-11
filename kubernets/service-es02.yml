@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-es02
+spec:
+  selector:
+    app: es02
+  ports:
+  - port: 9200  
+    name: http
+    targetPort: 9200
+  - port: 9300
+    name: http2
+    targetPort: 9300
+  - port: 9600
+    name: http3
+    targetPort: 9600

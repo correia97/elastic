@@ -1,0 +1,100 @@
+version: '3.4'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.9.1
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      - elastic 
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.9.1
+    environment:
+       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports: 
+      - 5699:5601
+    networks:
+      - elastic
+      - proxy  
+    depends_on: 
+      - elasticsearch
+  metricbeat:
+    image: metricbeat-oss:7.9.1  
+    build:
+      context: ./metricbeat/
+      dockerfile: DockerFile
+    user: root    
+    privileged: true
+    restart: on-failure
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+     - /:/hostfs:ro
+    networks:
+      - elastic
+      - blog1_data
+      - proxy  
+    depends_on: 
+      - elasticsearch 
+      - kibana
+
+  auditbeat:
+    image: auditbeat-oss:7.9.1  
+    build:
+      context: ./auditbeat/
+      dockerfile: DockerFile
+    cap_add:
+      - AUDIT_CONTROL
+      - AUDIT_READ
+    privileged: true    
+    user: root    
+    networks:
+      - elastic
+      - blog1_data
+      - proxy  
+    depends_on: 
+      - elasticsearch 
+      - kibana
+
+  heartbeat:
+    image: docker.elastic.co/beats/heartbeat-oss:7.9.1   
+    
+    privileged: true    
+    user: root   
+    # build:
+    #   context: ./heartbeat/
+    #   dockerfile: DockerFile
+   
+    volumes:
+      - ./heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro                 
+    networks:
+      - elastic
+      - blog1_data
+      - proxy  
+    depends_on: 
+      - elasticsearch 
+      - kibana
+
+
+
+
+volumes:
+  data01:
+    driver: local
+networks:
+  elastic:
+    driver: overlay
+  blog1_data:
+    external: true
+  proxy:
+    external: true    

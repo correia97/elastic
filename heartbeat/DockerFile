@@ -1,0 +1,11 @@
+FROM docker.elastic.co/beats/heartbeat-oss:7.9.1  
+USER root
+
+RUN rm /usr/share/heartbeat/heartbeat.yml
+COPY ./heartbeat.yml /usr/share/heartbeat/
+
+
+RUN chown root:heartbeat /usr/share/heartbeat/heartbeat.yml
+RUN chmod go-w /usr/share/heartbeat/heartbeat.yml
+USER heartbeat
+    
