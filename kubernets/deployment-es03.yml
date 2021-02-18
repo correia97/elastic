@@ -12,6 +12,10 @@ spec:
         app: es03
         network/elastic: "true"
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
       initContainers:
         - name: sysctl
           image: busybox:1.28
@@ -30,6 +34,9 @@ spec:
           name: http2
         - containerPort: 9600
           name: http3
+        volumeMounts:
+          - mountPath: /usr/share/elasticsearch/data
+            name: data03  
         env:
           - name: node.name
             value: es03
@@ -42,4 +49,8 @@ spec:
           - name: bootstrap.memory_lock
             value: "false"
           - name: "ES_JAVA_OPTS"
-            value: "-Xms512m -Xmx512m"    
+            value: "-Xms512m -Xmx512m"
+      volumes:
+        - name: data03
+          persistentVolumeClaim:
+            claimName: elastic-pvc03  
