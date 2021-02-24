@@ -1,0 +1,23 @@
+# apiVersion: apps/v1
+# kind: DaemonSet
+# metadata:
+#  name: sysctl-node-memory
+# spec:
+#  selector: 
+#    matchLabels: 
+#      app: sysctl-node
+#  template:
+#    metadata:
+#      labels:
+#        app: sysctl-node
+#    spec:
+#     containers:
+#       - command:
+#         - sh
+#         - -c
+#         - sysctl -w vm.max_map_count=262166;
+#         image: busybox:1.28
+#         name: sysctl-conf
+#         securityContext:
+#           privileged: true
+               

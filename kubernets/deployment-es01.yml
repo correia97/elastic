@@ -12,16 +12,12 @@ spec:
         app: es01
         network/elastic: "true"
     spec:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 3000
-        fsGroup: 2000
       initContainers:
         - name: sysctl
           image: busybox:1.28
           securityContext:
             privileged: true
-          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']           
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144;']           
       containers: 
       - name: es01     
         securityContext:
